@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MathPad - Place Value Addition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .block {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid black;
+            width: 40px;
+            height: 40px;
+            margin: 4px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: black;
+            border-radius: 50%;
+            margin: 4px;
+            display: inline-block;
+        }
+
+        canvas {
+            border: 1px solid black;
+            background: white;
+        }
+
+        #place-values {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .number-block {
+            margin: 0 20px;
+        }
+
+        #sidebar {
+
+            padding: 10px;
+            border: 2px solid black;
+            background: #FFF3E0;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 100%
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #FFFDE7, #E1F5FE);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        h1,
+        h2,
+        h4 {
+            color: #FF5722;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        #container {
+            max-width: 800px;
+            width: 95%;
+            background: #FFF9C4;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+
+        #math-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #E1F5FE;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+
+        canvas {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            margin: 5px;
+            touch-action: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .ten-block,
+        .hundred-block,
+        .one-dot {
+            animation: popIn 0.4s ease;
+        }
+
+        .hundred-block {
+            width: 50px;
+            height: 50px;
+            background: #C5CAE9;
+            border: 2px solid #3F51B5;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ten-block {
+            width: 40px;
+            height: 40px;
+            background: #C8E6C9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .one-dot {
+            width: 20px;
+            height: 20px;
+            background: #FF5722;
+            border: 2px solid #E64A19;
+            border-radius: 50%;
+            margin: 5px;
+        }
+
+        #sidebar {
+            margin-top: 20px;
+            background: #FFE0B2;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #388E3C;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.5) rotate(-15deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2) rotate(10deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+
+
+        #sidebar h4 {
+            text-align: center;
+            color: #FF5722;
+            margin-bottom: 15px;
+        }
+
+        .block-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .ten-block {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #4CAF50;
+            background: #C8E6C9;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 4px;
+            animation: popIn 0.4s ease;
+        }
+
+        .one-dot {
+            width: 20px;
+            height: 20px;
+            background: #FF5722;
+            border-radius: 50%;
+            margin: 5px;
+            border: 2px solid #E64A19;
+            animation: popIn 0.4s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.3) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2) rotate(10deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+
+        #blocks-top,
+        #blocks-bottom {
+            margin-bottom: 15px;
+            display: flex
+        }
+
+
+        .block-divider {
+            width: 100%;
+            height: 8px;
+            background: #000;
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 600px) {
+            #sidebar {
+                position: static;
+                width: 100%;
+                margin-top: 20px;
+            }
+        }
+
+        canvas {
+            width: 120px;
+            height: 120px;
+            border: 2px solid black;
+            background: white;
+            margin: 5px;
+            touch-action: none;
+            /* Important for proper touch drawing */
+        }
+
+        #blocks-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #math-area {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            canvas {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
+        canvas {
+            width: 120px;
+            height: 120px;
+            border: 2px solid black;
+            background: white;
+            margin: 5px;
+            touch-action: none;
+            /* Important for proper touch drawing */
+        }
+
+        #blocks-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #math-area {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            canvas {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
+        #container {
+
+            margin: 15px
+        }
+
+        #bottom-row::before {
+            content: "+";
+            font-size: 50px;
+            font-weight: bold;
+            color: #FF5722;
+            display: inline-block;
+            user-select: none;
+            right: 15px;
+            position: relative;
+        }
+
+        #mute-btn {
+            background: #FFF3E0;
+            border: 2px solid #FF5722;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-left: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #blocks-drawer {
+            position: fixed;
+            bottom: 50vh;
+            left: 0;
+            width: 200px;
+            transform: translateX(-200px);
+            transition: transform 0.4s ease;
+            background: #ffffff;
+            /* border: 2px solid black; */
+            border-radius: 0 10px 10px 0;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            height: 0px
+        }
+
+        #blocks-drawer h4 {
+            text-align: center;
+            color: #FF5722;
+            margin-bottom: 15px;
+        }
+
+        #blocks-drawer.open:hover {
+            opacity: 1;
+        }
+
+        #blocks-drawer.open {
+            transform: translateX(50px);
+            width: 80vw;
+            height: 30vh;
+            opacity: 0.3
+        }
+
+        #drawer-handle {
+            position: absolute;
+            top: 5px;
+            background: #FF5722;
+            color: white;
+            padding: 5px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            right: -75px;
+            text-align: right;
+        }
+
+
+        #blocks-content {
+            padding: 10px;
+            /* max-height:80vh; */
+            overflow-y: auto;
+
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="carry-sound" src="swoosh.mp3" preload="auto"></audio>
+    <div class="main-container">
+        <div id=container>
+            <button id="mute-btn" onclick="toggleMute()" style="font-size: 20px;">
+                🔊
+            </button>
+            <button id="new-problem-btn" onclick="initialize()" style="margin-top: 20px;">New Problem</button>
+
+
+            <div id="math-area">
+                <h2>Addition Practice</h2>
+
+                <div id="question-text" style="font-size: 1.5rem; margin-bottom: 20px;"></div>
+
+                <div id="top-row" style="display: flex; justify-content: center; margin: 10px;"></div>
+
+                <div id="bottom-row" style="display: flex; justify-content: center; margin: 10px;"></div>
+
+                <hr style="width: 200px; margin: 20px auto; border: 2px solid black;">
+
+                <div id="answer-row" style="display: flex; justify-content: center; margin: 10px;"></div>
+
+                <div id="result" style="margin-top: 20px; font-weight: bold;"></div>
+            </div>
+
+            <!--countable  blocks -->
+            <div id="blocks-drawer">
+                <div id="drawer-handle">Blocks ▸</div>
+                <div id="blocks-content">
+                    <h4>Countable Blocks</h4>
+                    <div id="blocks-area" style="margin-top: 10px;"></div>
+                    <div id="blocks-top" class="block-group"></div>
+                    <div class="block-divider"></div>
+                    <div id="blocks-bottom" class="block-group"></div>
+
+
+
+
+
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <div style="margin: 10px;">
+            <button onclick="setMode(1)">1-Digit Addition</button>
+            <button onclick="setMode(2)">2-Digit Addition</button>
+            <button onclick="setMode(3)">3-Digit Addition</button>
+            <button onclick="setMode('carry')">Carry-Over Addition</button>
+        </div>
+
+
+    </div>
+    </div>
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+
+    <script type="module">
+        import { loadModel, predictDigit } from './digitRecogniser.js';
+
+        let problemTop = "";
+        let problemBottom = "";
+        let sum = "";
+        let topIndex = 0;
+        let bottomIndex = 0;
+        let answerIndex = 0;
+        let carryMap = [];
+        let selectedMode = 2; // Default to 2-digit
+        let wrongAttempts = 0;
+        let num1 = 0;
+        let num2 = 0;
+        let currentAnswerCanvas = null;
+        let isMuted = false;
+
+        async function initialize() {
+            await loadModel();
+            setMode(selectedMode);
+
+        }
+
+
+        window.initialize = initialize;
+        initialize();
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            btn.innerText = isMuted ? "🔇" : "🔊";
+        }
+        window.toggleMute = toggleMute;
+
+        document.getElementById('drawer-handle').addEventListener('click', () => {
+            const drawer = document.getElementById('blocks-drawer');
+            drawer.classList.toggle('open');
+
+            const handle = document.getElementById('drawer-handle');
+            handle.innerText = drawer.classList.contains('open') ? "Blocks ◂" : "Blocks ▸";
+        });
+
+
+        /**
+         * Sets the current mode for generating problems.
+         * @param {number|string} mode - The mode to set (1, 2, 3, or 'carry').
+         */
+
+        function setMode(mode) {
+            selectedMode = mode;
+            generateProblem();
+            renderCountBlocks(num1, 'blocks-top');
+            renderCountBlocks(num2, 'blocks-bottom');
+
+        }
+        window.setMode = setMode;
+
+        function generateProblem() {
+            if (selectedMode === 1) {
+                num1 = Math.floor(Math.random() * 9) + 1;
+                num2 = Math.floor(Math.random() * 9) + 1;
+            } else if (selectedMode === 2) {
+                num1 = Math.floor(Math.random() * 90) + 10;
+                num2 = Math.floor(Math.random() * 90) + 10;
+            } else if (selectedMode === 3) {
+                num1 = Math.floor(Math.random() * 900) + 100;
+                num2 = Math.floor(Math.random() * 900) + 100;
+            } else if (selectedMode === 'carry') {
+                // Guaranteed carry-over by constructing specific numbers
+                num1 = Math.floor(Math.random() * 90) + 10;
+                num2 = 100 - num1 + Math.floor(Math.random() * 10);
+            }
+
+            problemTop = num1.toString();
+            problemBottom = num2.toString();
+            sum = (num1 + num2).toString();
+
+            carryMap = Array(sum.length).fill(0);
+
+            topIndex = 0;
+            bottomIndex = 0;
+            answerIndex = 0;
+
+            document.getElementById('result').innerText = "";
+            document.querySelectorAll('.carry-marker').forEach(e => e.remove());
+            document.getElementById('question-text').innerText = `${num1} + ${num2} = ?`;
+
+            renderDigitCanvases('top-row', problemTop, handleTopInput);
+            renderDigitCanvases('bottom-row', problemBottom, handleBottomInput);
+            speak(`Please write the top number ${problemTop} and then the bottom number ${problemBottom}.`);
+            document.getElementById('answer-row').innerHTML = "";
+        }
+
+
+
+        function renderDigitCanvases(containerId, digits, inputHandler) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+
+            for (let i = 0; i < digits.length; i++) {
+                const canvas = createCanvas();
+                canvas.dataset.position = i;
+                container.appendChild(canvas);
+                setupCanvas(canvas, (digit) => inputHandler(digit, canvas, i));
+            }
+        }
+
+        function handleTopInput(digit, canvas, position) {
+            if (digit == problemTop[position]) {
+                markCanvasCorrect(canvas, digit);
+                wrongAttempts = 0;
+                topIndex++;
+                if (topIndex === problemTop.length) {
+                    speak("Now copy the bottom number");
+                }
+            } else {
+                console.log("wrong attempt on locked canvas,wrongAttempts:", wrongAttempts);
+                if (canvas.dataset.locked === "true")
+
+                    return;  // Early guard if already done
+
+                shakeCanvas(canvas);
+                wrongAttempts++;
+                if (wrongAttempts >= 2) {
+                    //   if (canvas.dataset.locked === "true") return;
+
+                    markCanvasCorrect(canvas, problemTop[position]);
+                    wrongAttempts = 0;
+                    topIndex++;
+                    if (topIndex === problemTop.length) {
+                        speak("Now copy the bottom number");
+                    }
+                }
+            }
+        }
+
+
+        function handleBottomInput(digit, canvas, position) {
+            if (digit == problemBottom[position]) {
+                markCanvasCorrect(canvas, digit);
+                wrongAttempts = 0;
+                bottomIndex++;
+                if (bottomIndex === problemBottom.length) {
+                    speak("Now write the answer");
+                    addAnswerCanvas();
+                }
+            } else {
+                if (canvas.dataset.locked === "true")
+
+                    return;  // Early guard if already done
+                shakeCanvas(canvas);
+                wrongAttempts++;
+                if (wrongAttempts >= 2) {
+                    if (canvas.dataset.locked === "true") return;
+
+                    markCanvasCorrect(canvas, problemBottom[position]);
+                    wrongAttempts = 0;
+                    bottomIndex++;
+                    if (bottomIndex === problemBottom.length) {
+                        speak("Now write the answer");
+                        addAnswerCanvas();
+                    }
+                }
+            }
+        }
+
+        function addAnswerCanvas() {
+            const container = document.getElementById('answer-row');
+            const canvas = createCanvas();
+
+            // Insert new canvas at the beginning, shifting others right
+            if (container.firstChild) {
+                container.insertBefore(canvas, container.firstChild);
+            } else {
+                container.appendChild(canvas);
+            }
+
+            setupCanvas(canvas, handleAnswerInput);
+        }
+
+
+        function handleAnswerInput(digit, canvas) {
+            const expectedIndex = sum.length - 1 - answerIndex;
+            const topPos = problemTop.length - 1 - answerIndex;
+            const bottomPos = problemBottom.length - 1 - answerIndex;
+
+            const topDigit = parseInt(problemTop[topPos] || '0');
+            const bottomDigit = parseInt(problemBottom[bottomPos] || '0');
+            const carryIn = carryMap[answerIndex] || 0;
+
+            const actualSum = topDigit + bottomDigit + carryIn;
+            const expectedDigit = actualSum % 10;
+            const carryOut = actualSum >= 10 ? 1 : 0;
+
+            if (digit == expectedDigit) {
+                if (canvas.dataset.locked === "true") return;
+
+                markCanvasCorrect(canvas, digit);
+                if (carryOut) {
+                    showPermanentCarry(answerIndex + 1, carryOut);
+                    carryMap[answerIndex + 1] = carryOut;
+                }
+                wrongAttempts = 0;
+                answerIndex++;
+                if (answerIndex < sum.length) {
+                    addAnswerCanvas();
+                } else {
+                    document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
+                    speak("Correct! Well done");
+                }
+            } else {
+                wrongAttempts++;
+                shakeCanvas(canvas);
+                if (wrongAttempts >= 3) {
+                    enableKeyboardEntry(canvas, expectedDigit, carryOut);
+                    wrongAttempts = 0;
+                    // Do NOT advance answerIndex here — wait for correct keyboard input
+                }
+            }
+        }
+
+
+        function enableKeyboardEntry(canvas, expectedDigit, carryOut) {
+            currentAnswerCanvas = canvas;
+            speak("Type the correct number using the keyboard");
+
+            // Create or reuse hidden input to trigger mobile keyboard
+            let hiddenInput = document.getElementById("hidden-keyboard");
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.id = "hidden-keyboard";
+                hiddenInput.type = "text";
+                hiddenInput.maxLength = 1;
+                hiddenInput.style.position = "absolute";
+                hiddenInput.style.opacity = 0;
+                hiddenInput.style.pointerEvents = "none";
+                document.body.appendChild(hiddenInput);
+            }
+
+            hiddenInput.value = "";
+            hiddenInput.focus();
+
+            // Desktop fallback - listen for keydown globally
+            function handler(e) {
+                const typed = parseInt(e.key);
+                if (isNaN(typed)) return;
+
+                if (typed == expectedDigit) {
+                    markCanvasCorrect(canvas, typed);
+                    if (carryOut) {
+                        showPermanentCarry(answerIndex + 1, carryOut);
+                        carryMap[answerIndex + 1] = carryOut;
+                    }
+
+                    currentAnswerCanvas = null;
+                    window.removeEventListener('keydown', handler);
+                    hiddenInput.blur();
+
+                    answerIndex++;
+                    if (answerIndex < sum.length) {
+                        addAnswerCanvas();
+                    } else {
+                        document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
+                        speak("Correct! Well done");
+                    }
+                }
+            }
+
+            // Unified input handler for mobile & desktop
+            hiddenInput.oninput = () => {
+                const typed = parseInt(hiddenInput.value);
+                if (isNaN(typed)) return;
+
+                if (typed == expectedDigit) {
+                    markCanvasCorrect(canvas, typed);
+                    if (carryOut) {
+                        showPermanentCarry(answerIndex + 1, carryOut);
+                        carryMap[answerIndex + 1] = carryOut;
+                    }
+
+                    currentAnswerCanvas = null;
+                    window.removeEventListener('keydown', handler);
+                    hiddenInput.blur();
+
+                    answerIndex++;
+                    if (answerIndex < sum.length) {
+                        addAnswerCanvas();
+                    } else {
+                        document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
+                        speak("Correct! Well done");
+                    }
+                }
+            };
+
+            window.addEventListener('keydown', handler);
+        }
+
+
+
+        function calculateCarryIn(columnIndex) {
+            // Example: no advanced carry tracking yet, simplest demo version
+            return 0;
+        }
+
+        function createCanvas() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 120;
+            canvas.height = 120;
+            canvas.style.border = "1px solid black";
+            canvas.style.margin = "5px";
+            canvas.style.background = "white";
+            return canvas;
+        }
+
+        function setupCanvas(canvas, callback) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "black";
+
+            let drawing = false;
+            let recognitionTimeout = null;
+
+            function startDraw(x, y) {
+                if (canvas.dataset.locked === "true") return;
+                drawing = true;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+
+                if (recognitionTimeout) {
+                    clearTimeout(recognitionTimeout);
+                    recognitionTimeout = null;
+                }
+            }
+
+            function draw(x, y) {
+                if (!drawing) return;
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            canvas.addEventListener("mousedown", (e) => {
+                startDraw(e.offsetX, e.offsetY);
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                draw(e.offsetX, e.offsetY);
+            });
+
+            window.addEventListener("mouseup", () => {
+                if (!drawing) return;
+                drawing = false;
+                if (canvas.dataset.locked === "true") return;
+                recognitionTimeout = setTimeout(async () => {
+                    const digit = await predictDigit(canvas);
+                    callback(digit, canvas);
+                }, 800);
+            });
+
+            // Touch Events
+            canvas.addEventListener("touchstart", (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                startDraw(touch.clientX - rect.left, touch.clientY - rect.top);
+            });
+
+            canvas.addEventListener("touchmove", (e) => {
+                if (!drawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                draw(touch.clientX - rect.left, touch.clientY - rect.top);
+                e.preventDefault();
+            });
+
+            window.addEventListener("touchend", () => {
+                if (!drawing) return;
+                drawing = false;
+                if (canvas.dataset.locked === "true") return;
+                recognitionTimeout = setTimeout(async () => {
+                    const digit = await predictDigit(canvas);
+                    callback(digit, canvas);
+                }, 800);
+            });
+        }
+
+
+
+
+
+        function markCanvasCorrect(canvas, digit) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText(digit, 15, 35);
+            canvas.style.pointerEvents = "none";
+            canvas.dataset.locked = "true";
+        }
+
+
+
+        function shakeCanvas(canvas) {
+            canvas.style.transition = "transform 0.1s";
+            canvas.style.transform = "translateX(-5px)";
+            setTimeout(() => {
+                canvas.style.transform = "translateX(5px)";
+            }, 100);
+            setTimeout(() => {
+                // Only clear if canvas is still interactive (not yet marked correct)
+                if (canvas.dataset.locked !== "true") {
+                    clearCanvas(canvas);
+                }
+            }, 200);
+        }
+
+        function clearCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function speak(text) {
+            if (isMuted) return;
+            const msg = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(msg);
+        }
+
+        function showPermanentCarry(columnIndex, carryDigit) {
+            const topRow = document.getElementById('top-row');
+            const targetCanvas = topRow.children[topRow.children.length - 1 - columnIndex];
+            if (!targetCanvas) return;
+
+            // Prevent duplicates
+            if (targetCanvas.parentElement.querySelector(`.carry-marker[data-pos="${columnIndex}"]`)) return;
+
+            const carryElem = document.createElement('div');
+            carryElem.innerText = carryDigit;
+            carryElem.className = 'carry-marker';
+            carryElem.dataset.pos = columnIndex;
+            carryElem.style.position = 'absolute';
+            carryElem.style.fontSize = '20px';
+            carryElem.style.fontWeight = 'bold';
+            carryElem.style.color = 'red';
+            carryElem.style.border = '1px dashed red';
+            carryElem.style.borderRadius = '3px';
+            carryElem.style.padding = '2px';
+            carryElem.style.background = 'white';
+            carryElem.style.left = targetCanvas.getBoundingClientRect().left + window.scrollX + 'px';
+            carryElem.style.top = targetCanvas.getBoundingClientRect().top + window.scrollY - 25 + 'px';
+            carryElem.style.opacity = 0;
+
+            document.body.appendChild(carryElem);
+
+            // Swoosh sound with slight delay and fade-in
+            setTimeout(() => {
+                const sound = document.getElementById('carry-sound');
+                if (sound) sound.play();
+
+                carryElem.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                carryElem.style.transform = 'translateY(-10px)';
+                carryElem.style.opacity = 1;
+
+                setTimeout(() => {
+                    carryElem.style.transform = 'translateY(0)';
+                }, 600);
+            }, 300);
+            setTimeout(() => {
+                speak(`Carry over ${carryDigit}`);
+            }, 900)
+        }
+
+
+
+
+
+        
+
+        // blocks code 
+        function randomBrightColor() {
+            const colors = ["#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9", "#BBDEFB", "#C8E6C9", "#FFF9C4", "#FFECB3"];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function renderCountBlocks(number, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+
+            const hundreds = Math.floor(number / 100);
+            const tens = Math.floor((number % 100) / 10);
+            const ones = number % 10;
+
+            for (let i = 0; i < hundreds; i++) {
+                const block = document.createElement('div');
+                block.className = "hundred-block";
+                block.innerText = "100";
+                block.style.background = randomBrightColor();
+                container.appendChild(block);
+            }
+
+            for (let i = 0; i < tens; i++) {
+                const block = document.createElement('div');
+                block.className = "ten-block";
+                block.innerText = "10";
+                block.style.background = randomBrightColor();
+                container.appendChild(block);
+            }
+
+            for (let i = 0; i < ones; i++) {
+                const dot = document.createElement('div');
+                dot.className = "one-dot";
+                dot.style.background = randomBrightColor();
+                container.appendChild(dot);
+            }
+
+        }
+    </script>
+</body>
+
+</html>
+<!-- End of file: mathPad.html -->
