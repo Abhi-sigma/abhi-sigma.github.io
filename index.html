@@ -379,8 +379,12 @@
         #blocks-drawer.open {
             transform: translateX(50px);
             width: 80vw;
-            height: 30vh;
-            opacity: 0.3
+            height: fit-content;
+            opacity: 1;
+            top: 30vh;
+            position: absolute;
+            background: white;
+            border-radius: 10px;
         }
 
         #drawer-handle {
@@ -405,6 +409,7 @@
             overflow-y: auto;
 
         }
+
         span {
             font-size: 1.5rem;
             font-weight: bold;
@@ -584,7 +589,7 @@
                 const canvas = createCanvas();
                 canvas.dataset.position = i;
                 container.appendChild(canvas);
-                if(containerId=="bottom-row")
+                if (containerId == "bottom-row")
                     canvas.dataset.locked = "true";
                 else
                     canvas.dataset.locked = "false";
@@ -592,7 +597,7 @@
             }
         }
 
-        
+
 
 
         function handleTopInput(digit, canvas, position) {
@@ -605,7 +610,7 @@
                     speak("Now copy the bottom number");
                 }
             } else {
-                
+
                 if (canvas.dataset.locked === "true")
 
                     return;  // Early guard if already done
@@ -619,19 +624,19 @@
                     if (topIndex === problemTop.length) {
                         unlockBottomRow();
                         speak("Now copy the bottom number");
-                        
+
                     }
                 }
             }
         }
         function unlockBottomRow() {
-    const canvases = document.querySelectorAll('#bottom-row canvas');
-    canvases.forEach(c => {
-        c.dataset.locked = "false";
-        c.style.opacity = "1";
-    });
-   
-}
+            const canvases = document.querySelectorAll('#bottom-row canvas');
+            canvases.forEach(c => {
+                c.dataset.locked = "false";
+                c.style.opacity = "1";
+            });
+
+        }
 
 
 
@@ -641,10 +646,10 @@
                 wrongAttempts = 0;
                 bottomIndex++;
                 if (bottomIndex === problemBottom.length) {
-                  
+
                     addAnswerCanvases();
                     speak("Now add the ones place first");
-                    
+
                 }
             } else {
                 if (canvas.dataset.locked === "true")
@@ -653,8 +658,6 @@
                 shakeCanvas(canvas);
                 wrongAttempts++;
                 if (wrongAttempts >= 2) {
-                    if (canvas.dataset.locked === "true") return;
-                    enableKeyboardEntry()
                     markCanvasCorrect(canvas, problemBottom[position]);
                     wrongAttempts = 0;
                     bottomIndex++;
@@ -681,7 +684,7 @@
                     canvas.style.opacity = "0.5";
                 }
 
-                container.appendChild(canvas,container.firstElementChild);
+                container.appendChild(canvas, container.firstElementChild);
 
                 setupCanvas(canvas, handleAnswerInput);
                 showGuidanceForPlace(0);
@@ -704,47 +707,55 @@
 
             if (digit == expectedDigit) {
                 if (canvas.dataset.locked === "true") return;
+
                 markCanvasCorrect(canvas, digit);
-                if (canvas.previousSibling) {
-                    canvas.previousSibling.style.opacity = "1"; // Unlock next canvas
-                    canvas.previousSibling.dataset.locked = "false";
-                }
+
                 if (carryOut) {
                     showPermanentCarry(answerIndex + 1, carryOut);
                     carryMap[answerIndex + 1] = carryOut;
                 }
-                wrongAttempts = 0;
+
                 answerIndex++;
                 showGuidanceForPlace(answerIndex);
+                document.getElementById('guidance-container').scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+});
+
+                const allCanvases = document.querySelectorAll('#answer-row canvas');
+                const nextCanvas = allCanvases[sum.length - 1 - answerIndex];
+
                 if (answerIndex === sum.length) {
-                    document.getElementById('guidance-container').innerHTML = "";  
+                    document.getElementById('guidance-container').innerHTML = "";
                     document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
                     speak(`Correct! Well done. The sum of ${problemTop} and ${problemBottom} is ${sum}`);
-                } 
-                    
-                
+                } else if (nextCanvas) {
+                    nextCanvas.style.opacity = "1";
+                    nextCanvas.dataset.locked = "false";
+                }
+
+                wrongAttempts = 0;
             } else {
                 wrongAttempts++;
                 shakeCanvas(canvas);
+
                 if (wrongAttempts >= 3) {
                     enableKeyboardEntry(canvas, expectedDigit, carryOut);
                     wrongAttempts = 0;
-                    // Do NOT advance answerIndex here — wait for correct keyboard input
                 }
             }
         }
 
 
+
         function enableKeyboardEntry(canvas, expectedDigit, carryOut) {
             currentAnswerCanvas = canvas;
-            //speak("Type the correct number using the keyboard");
 
-            // Create or reuse hidden input to trigger mobile keyboard
             let hiddenInput = document.getElementById("hidden-keyboard");
             if (!hiddenInput) {
                 hiddenInput = document.createElement('input');
                 hiddenInput.id = "hidden-keyboard";
-                hiddenInput.type = "text";
+                hiddenInput.type = "number";
                 hiddenInput.maxLength = 1;
                 hiddenInput.style.position = "absolute";
                 hiddenInput.style.opacity = 0;
@@ -755,61 +766,71 @@
             hiddenInput.value = "";
             hiddenInput.focus();
 
-            // Desktop fallback - listen for keydown globally
-            function handler(e) {
-                const typed = parseInt(e.key);
-                if (isNaN(typed)) return;
+            // Disable handwriting on this canvas
+            canvas.dataset.locked = "true";
+            canvas.style.opacity = "1"; // Visually keep it active
 
-                if (typed == expectedDigit) {
-                    markCanvasCorrect(canvas, typed);
-                    
-                    if (carryOut) {
-                        showPermanentCarry(answerIndex + 1, carryOut);
-                        carryMap[answerIndex + 1] = carryOut;
-                    }
+            // Allow click to bring up keyboard again
+            canvas.style.cursor = "pointer";
+            canvas.addEventListener("click", () => {
+                hiddenInput.focus();
+            }, { once: true });
 
-                    currentAnswerCanvas = null;
-                    if (canvas.previousSibling) {
-                    canvas.previousSibling.style.opacity = "1"; // Unlock next canvas
-                    canvas.previousSibling.dataset.locked = "false";
+            const allCanvases = document.querySelectorAll('#answer-row canvas');
+
+            function markCorrectAndProceed() {
+                markCanvasCorrect(canvas, expectedDigit);
+
+                if (carryOut) {
+                    showPermanentCarry(answerIndex + 1, carryOut);
+                    carryMap[answerIndex + 1] = carryOut;
                 }
-                    window.removeEventListener('keydown', handler);
-                    hiddenInput.blur();
 
-                    answerIndex++;
+                answerIndex++;
+
+                if (answerIndex === sum.length) {
+                    document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
+                    speak(`Correct! Well done. The sum of ${problemTop} and ${problemBottom} is ${sum}`);
+                } else {
+                    const nextCanvas = allCanvases[sum.length - 1 - answerIndex];
+                    if (nextCanvas) {
+                        nextCanvas.style.opacity = "1";
+                        nextCanvas.dataset.locked = "false";
+                    }
                     showGuidanceForPlace(answerIndex);
-                    if (answerIndex === sum.length) {
-                        document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
-                        //speak("Correct! Well done");
-                    } 
                 }
             }
 
-            // Unified input handler for mobile & desktop
             hiddenInput.oninput = () => {
                 const typed = parseInt(hiddenInput.value);
                 if (isNaN(typed)) return;
 
                 if (typed == expectedDigit) {
-                    markCanvasCorrect(canvas, typed);
-                    if (carryOut) {
-                        showPermanentCarry(answerIndex + 1, carryOut);
-                        carryMap[answerIndex + 1] = carryOut;
-                    }
-
+                    markCorrectAndProceed();
+                    document.getElementById('guidance-container').scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+});
                     currentAnswerCanvas = null;
-                    window.removeEventListener('keydown', handler);
                     hiddenInput.blur();
-
-                    answerIndex++;
-                    if (answerIndex < sum.length) {
-                        addAnswerCanvas();
-                    } else {
-                        document.getElementById('result').innerText = `Correct! ${problemTop} + ${problemBottom} = ${sum}`;
-                        //speak("Correct! Well done");
-                    }
                 }
             };
+
+            function handler(e) {
+                const typed = parseInt(e.key);
+                if (isNaN(typed)) return;
+
+                if (typed == expectedDigit) {
+                    markCorrectAndProceed();
+                    document.getElementById('guidance-container').scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+});
+                    currentAnswerCanvas = null;
+                    hiddenInput.blur();
+                    window.removeEventListener('keydown', handler);
+                }
+            }
 
             window.addEventListener('keydown', handler);
         }
@@ -913,76 +934,112 @@
         }
 
         function showGuidanceForPlace(index) {
-    const container = document.getElementById('guidance-container');
-    container.innerHTML = ""; // Clear previous
+            const container = document.getElementById('guidance-container');
+            container.innerHTML = "";
 
-    const topPos = problemTop.length - 1 - index;
-    const bottomPos = problemBottom.length - 1 - index;
+            const topPos = problemTop.length - 1 - index;
+            const bottomPos = problemBottom.length - 1 - index;
 
-    const topDigit = parseInt(problemTop[topPos] || '0');
-    const bottomDigit = parseInt(problemBottom[bottomPos] || '0');
-    const carryIn = carryMap[index] || 0;
+            const topDigit = parseInt(problemTop[topPos] || '0');
+            const bottomDigit = parseInt(problemBottom[bottomPos] || '0');
+            const carryIn = carryMap[index] || 0;
 
-    const label = document.createElement('h4');
-    label.innerText = "Count to find sum:";
+            const label = document.createElement('h4');
+            label.innerText = "Visualize the Addition:";
 
-    const carryRow = document.createElement('div');
-    carryRow.style.display = "flex";
-    carryRow.style.alignItems = "center";
-    carryRow.style.marginBottom = "5px";
+            const carryRow = document.createElement('div');
+            carryRow.style.display = "flex";
+            carryRow.style.alignItems = "center";
+            carryRow.style.marginBottom = "5px";
 
-    const upperRow = document.createElement('div');
-    upperRow.style.display = "flex";
-    upperRow.style.marginBottom = "5px";
+            const upperRow = document.createElement('div');
+            upperRow.style.display = "flex";
+            upperRow.style.marginBottom = "5px";
 
-    const lowerRow = document.createElement('div');
-    lowerRow.style.display = "flex";
+            const lowerRow = document.createElement('div');
+            lowerRow.style.display = "flex";
+            lowerRow.style.marginBottom = "10px";
 
-    // Carry Over Display
-    if (carryIn > 0) {
-        const carryLabel = document.createElement('div');
-        carryLabel.innerText = "Carry Over:";
-        carryLabel.style.marginRight = "8px";
-        carryLabel.style.fontWeight = "bold";
-        carryRow.appendChild(carryLabel);
+            const totalRow = document.createElement('div');
+            totalRow.style.display = "flex";
+            totalRow.style.flexWrap = "wrap";
+            totalRow.style.alignItems = "center";
 
-        for (let i = 0; i < carryIn; i++) {
-            const dot = document.createElement('div');
-            dot.className = "one-dot";
-            dot.style.background = "#FFD700"; // Gold for carry
-            carryRow.appendChild(dot);
+            // Carry Over Display
+            if (carryIn > 0) {
+                const carryLabel = document.createElement('div');
+                carryLabel.innerText = "Carry Over:";
+                carryLabel.style.marginRight = "8px";
+                carryLabel.style.fontWeight = "bold";
+                carryRow.appendChild(carryLabel);
+
+                for (let i = 0; i < carryIn; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = "one-dot";
+                    dot.style.background = "#FFD700";
+                    carryRow.appendChild(dot);
+                }
+            }
+
+            // Top Digit Dots
+            const topLabel = document.createElement('span');
+            topLabel.innerText = `Top: ${topDigit}`;
+            topLabel.style.marginRight = "8px";
+            upperRow.appendChild(topLabel);
+
+            for (let i = 0; i < topDigit; i++) {
+                const dot = document.createElement('div');
+                dot.className = "one-dot";
+                dot.style.background = randomBrightColor();
+                upperRow.appendChild(dot);
+            }
+
+            // Bottom Digit Dots
+            const bottomLabel = document.createElement('span');
+            bottomLabel.innerText = `Bottom: ${bottomDigit}`;
+            bottomLabel.style.marginRight = "8px";
+            lowerRow.appendChild(bottomLabel);
+
+            for (let i = 0; i < bottomDigit; i++) {
+                const dot = document.createElement('div');
+                dot.className = "one-dot";
+                dot.style.background = randomBrightColor();
+                lowerRow.appendChild(dot);
+            }
+
+            // Total Sum Visual Breakdown
+            const sum = topDigit + bottomDigit + carryIn;
+            const tens = Math.floor(sum / 10);
+            const ones = sum % 10;
+
+            const sumLabel = document.createElement('div');
+            sumLabel.innerText = `Total Sum: ${sum}`;
+            sumLabel.style.fontWeight = "bold";
+            sumLabel.style.marginBottom = "5px";
+
+            for (let i = 0; i < tens; i++) {
+                const block = document.createElement('div');
+                block.className = "ten-block";
+                block.innerText = "10";
+                block.style.background = randomBrightColor();
+                totalRow.appendChild(block);
+            }
+
+            for (let i = 0; i < ones; i++) {
+                const dot = document.createElement('div');
+                dot.className = "one-dot";
+                dot.style.background = randomBrightColor();
+                totalRow.appendChild(dot);
+            }
+
+            // Assemble the Visual
+            container.appendChild(label);
+            if (carryIn > 0) container.appendChild(carryRow);
+            container.appendChild(upperRow);
+            container.appendChild(lowerRow);
+            container.appendChild(sumLabel);
+            container.appendChild(totalRow);
         }
-    }
-    const spanUpper = document.createElement("span")
-    spanUpper.innerText = topDigit+"=";
-    upperRow.appendChild(spanUpper);
-
-    // Top Digit Dots
-    for (let i = 0; i < topDigit; i++) {
-        const dot = document.createElement('div');
-        dot.className = "one-dot";
-        
-        dot.style.background = randomBrightColor();
-        
-        upperRow.appendChild(dot);
-
-    }
-    const spanLower = document.createElement("span")
-    spanLower.innerText = bottomDigit+"=";
-    lowerRow.appendChild(spanLower);
-    // Bottom Digit Dots
-    for (let i = 0; i < bottomDigit; i++) {
-        const dot = document.createElement('div');
-        dot.className = "one-dot";
-        dot.style.background = randomBrightColor();
-        lowerRow.appendChild(dot);
-    }
-
-    container.appendChild(label);
-    if (carryIn > 0) container.appendChild(carryRow);
-    container.appendChild(upperRow);
-    container.appendChild(lowerRow);
-}
 
 
 
@@ -1022,6 +1079,10 @@
 
         function speak(text) {
             if (isMuted) return;
+
+            // Cancel ongoing speech
+            window.speechSynthesis.cancel();
+
             const msg = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(msg);
         }
@@ -1066,7 +1127,7 @@
                 }, 600);
             }, 300);
             setTimeout(() => {
-                //speak(`Carry over ${carryDigit}`);
+                speak(`Carry over ${carryDigit}`);
             }, 900)
         }
 
