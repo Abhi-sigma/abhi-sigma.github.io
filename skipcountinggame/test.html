@@ -1,0 +1,300 @@
+<!-- HTML: Skip Counting Math Quiz Game -->
+<div id="quizUI" style="display: none">
+  <div id="quizOverlay">
+    <h2 id="quizTitle">Math Challenge!</h2>
+
+    <div id="quizQuestion">Question goes here</div>
+
+    <div id="skipGrid"></div>
+
+    <div id="draggablePool"></div>
+
+    <div id="dropZone">
+      <span>Total:</span>
+      <div id="sumResult">0</div>
+      <div id="multiplyResult"></div>
+    </div>
+
+    <div id="quizFeedback"></div>
+    <div id="quizProgress"></div>
+    <button id="quizNextBtn" disabled>Next</button>
+    <button id="quizRestartBtn" style="display:none">Restart Game</button>
+  </div>
+</div>
+
+<!-- CSS: Skip Counting Math Quiz Game -->
+<style>
+  #quizUI {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+  }
+
+  #quizOverlay {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    width: 90%;
+    max-width: 700px;
+    text-align: center;
+  }
+
+  #quizTitle {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  #quizQuestion {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  #skipGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .skipTile {
+    background: lightblue;
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #draggablePool {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .draggableSix {
+    background: #ffd700;
+    border: 2px solid #333;
+    border-radius: 8px;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    font-size: 20px;
+    cursor: grab;
+    user-select: none;
+  }
+
+  #dropZone {
+    background: #eee;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  #sumResult {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+
+  #multiplyResult {
+    font-size: 18px;
+    color: #555;
+  }
+
+  #quizFeedback {
+    font-size: 20px;
+    margin: 10px;
+    font-weight: bold;
+  }
+
+  #quizProgress {
+    font-size: 16px;
+    margin: 10px;
+  }
+
+  #quizNextBtn, #quizRestartBtn {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #quizNextBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  #quizNextBtn {
+    background: #3498db;
+    color: white;
+  }
+
+  #quizRestartBtn {
+    background: green;
+    color: white;
+  }
+</style>
+
+<!-- JavaScript: Skip Counting Quiz Game Module -->
+<script>
+  function startSkipQuiz({ skip = 6, totalQuestions = 10 }) {
+    const quizUI = document.getElementById('quizUI');
+    const questionEl = document.getElementById('quizQuestion');
+    const skipGrid = document.getElementById('skipGrid');
+    const pool = document.getElementById('draggablePool');
+    const dropZone = document.getElementById('dropZone');
+    const sumResult = document.getElementById('sumResult');
+    const multiplyResult = document.getElementById('multiplyResult');
+    const feedback = document.getElementById('quizFeedback');
+    const progress = document.getElementById('quizProgress');
+    const nextBtn = document.getElementById('quizNextBtn');
+    const restartBtn = document.getElementById('quizRestartBtn');
+
+    let questionIndex = 0;
+    let currentQuestion = null;
+    let currentSum = 0;
+    let draggedCount = 0;
+
+    function generateQuestions() {
+      const questions = [];
+    
+      for (let i = 0; i < totalQuestions; i++) {
+        const type = Math.random() < 0.5 ? 'addition' : 'multiplication';
+        const multiplier = Math.floor(Math.random() * 10) + 1;
+        const total = multiplier * skip;
+        let target = total
+        if (type === 'addition') {
+          const baseMultiplier = Math.floor(Math.random() * multiplier);
+          const base = baseMultiplier * skip;
+          target = total;
+          console.log(target)
+          questions.push({ type, base, target });
+        } else {
+          questions.push({ type, target });
+        }
+      }
+      console.log(questions)
+      return questions;
+    }
+
+    const questions = generateQuestions();
+
+    function renderSkipGrid() {
+      skipGrid.innerHTML = '';
+      for (let i = 1; i <= 15; i++) {
+        const div = document.createElement('div');
+        div.className = 'skipTile';
+        div.textContent = i * skip;
+        skipGrid.appendChild(div);
+      }
+    }
+
+    function renderPool() {
+      pool.innerHTML = '';
+      for (let i = 0; i < 15; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'draggableSix';
+        tile.draggable = true;
+        tile.textContent = skip;
+        tile.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', skip);
+        });
+        pool.appendChild(tile);
+      }
+    }
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+    });
+
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      const val = parseInt(e.dataTransfer.getData('text/plain'));
+      if (isNaN(val)) return;
+      currentSum += val;
+      draggedCount++;
+      sumResult.textContent = currentSum;
+      multiplyResult.textContent = `${skip} x ${draggedCount} = ${currentSum}`;
+      checkAnswer();
+    });
+
+    function checkAnswer() {
+      if (!currentQuestion) return;
+      let correct = false;
+      if (currentQuestion.type === 'addition') {
+        correct = currentSum === currentQuestion.target - currentQuestion.base;
+      } else {
+        correct = currentSum === currentQuestion.target;
+      }
+
+      if (correct) {
+        feedback.textContent = '✅ Correct!';
+        nextBtn.disabled = false;
+        pool.querySelectorAll('.draggableSix').forEach(el => el.draggable = false);
+      } else {
+        feedback.textContent = '';
+      }
+    }
+
+    function renderQuestion() {
+      feedback.textContent = '';
+      nextBtn.disabled = true;
+      currentSum = 0;
+      draggedCount = 0;
+      sumResult.textContent = '0';
+      multiplyResult.textContent = '';
+
+      currentQuestion = questions[questionIndex];
+
+      if (currentQuestion.type === 'addition') {
+        questionEl.textContent = `What do we add to ${currentQuestion.base} to make ${currentQuestion.target}?`;
+      } else {
+        questionEl.textContent = `How many ${skip}s make ${currentQuestion.target}?`;
+      }
+
+      progress.textContent = `Question ${questionIndex + 1} of ${totalQuestions}`;
+      renderPool();
+    }
+
+    nextBtn.addEventListener('click', () => {
+      questionIndex++;
+      if (questionIndex >= totalQuestions) {
+        quizOver();
+      } else {
+        renderQuestion();
+      }
+    });
+
+    function quizOver() {
+      questionEl.textContent = '🎉 Quiz complete!';
+      feedback.textContent = `Well done!`;
+      nextBtn.style.display = 'none';
+      restartBtn.style.display = 'inline-block';
+    }
+
+    restartBtn.addEventListener('click', () => {
+      location.reload();
+    });
+
+    // Start the game
+    quizUI.style.display = 'flex';
+    renderSkipGrid();
+    renderQuestion();
+  }
+</script>
+<script>
+ startSkipQuiz({ skip: 6, totalQuestions: 10 })
+</script>

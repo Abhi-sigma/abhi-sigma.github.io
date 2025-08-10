@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modular Bunny Times Table - Corrected</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #c3f0d7; }
+  canvas { display: block; }
+  #info {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 32px;
+    color: #333;
+    background: rgba(255,255,255,0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  #options {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+  }
+  .option-btn {
+    padding: 10px 20px;
+    font-size: 20px;
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<div id="info"></div>
+<div id="options"></div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+const options = document.getElementById('options');
+
+canvas.width = document.documentElement.clientWidth;
+canvas.height = document.documentElement.clientHeight;
+
+// Image assets
+const bg = new Image();
+const bunny = new Image();
+
+bg.src = 'background.png';
+bunny.src = 'bunny_spritesheet.png';
+// bunny.src = 'idle.png';
+
+
+const bunnies = [];
+const frameSpeed = 15;
+let assetsLoaded = 0;
+
+// Animation Definitions with Correct Sprite Row Offsets
+const Animations = {
+  run: {
+    name: "run",
+    img: bunny,
+    frameWidth: 225,
+    frameHeight: 305,
+    totalFrames: 4,
+    gapBetweenFrames: 58,
+    sourceY: 0
+  },
+  eat: {
+    name: "eat",
+    img: bunny,
+    frameWidth: 225,
+    frameHeight: 305,
+    totalFrames: 4,
+    gapBetweenFrames: 58,
+    sourceY: 310  // Offset to 2nd row
+  },
+  fight: {
+    name: "fight",
+    img: bunny,
+    frameWidth: 225,
+    frameHeight: 305,
+    totalFrames: 4,
+    gapBetweenFrames: 58,
+    sourceY: 610  // Offset to 3rd row
+  }
+};
+
+bg.onload = assetLoaded;
+bunny.onload = assetLoaded;
+
+function assetLoaded() {
+  assetsLoaded++;
+  if (assetsLoaded === 2) startGame();
+}
+
+function startGame() {
+  runTimesTable(2, 12);
+  animate();
+}
+
+// function spawnGroupedBunnies(groups, perGroup, anim) {
+//   bunnies.length = 0;
+//   const spacingX = 70;
+//   const spacingY = 120;
+//   const startX = (canvas.width - groups * spacingX) / 2;
+//   const startY = canvas.height - anim.frameHeight * 0.5 - 150;
+
+//   for (let g = 0; g < groups; g++) {
+//     for (let i = 0; i < perGroup; i++) {
+//       const finalX = startX + i * spacingX ;
+//       bunnies.push({
+//         x: -anim.frameWidth+i*50,
+//         y: startY - g * spacingY,
+//         speed: 3 + Math.random(),
+//         stopX: finalX,
+//         frame: 0,
+//         frameCounter: 0,
+//         arrived: false,
+//         anim: anim
+//       });
+//     }
+//   }
+// }
+function spawnGroupedBunnies(groups, perGroup, anim) {
+  bunnies.length = 0;
+
+  const desiredBunniesPerRow = 10;
+  const margin = 10;
+  const availableWidth = canvas.width - 2 * margin;
+
+  // Scale so that 30 bunnies (plus spacing) fit in available width
+  const baseBunnyWidth = anim.frameWidth;
+  const estimatedSpacing = 20;
+  const totalWidthNeeded = desiredBunniesPerRow * (baseBunnyWidth + estimatedSpacing);
+
+  let scale = availableWidth / totalWidthNeeded;
+  scale = Math.min(scale, 0.4); // Cap max bunny size for large screens
+  scale = Math.max(scale, 0.15); // Prevent bunnies becoming microscopic
+
+  const bunnyWidth = baseBunnyWidth * scale;
+  const bunnyHeight = anim.frameHeight * scale;
+
+  const bunnySpacingX = bunnyWidth * 0.5;
+  const groupSpacingX = bunnyWidth * 0.1;
+  const spacingY = bunnyHeight*0.7;
+
+  const maxX = canvas.width - margin;
+  const maxY = canvas.height-margin-bunnyHeight;
+
+  let currentX = margin;
+  let currentY = maxY;
+
+  for (let g = 0; g < groups; g++) {
+    for (let i = 0; i < perGroup; i++) {
+
+      let nextBunnyX = (window.innerWidth)/2- currentX;
+
+      // Wrap horizontally if bunny exceeds screen width
+      if (nextBunnyX + bunnyWidth > maxX) {
+        currentX = margin;
+        currentY -= spacingY;
+
+        if (currentY < margin) {
+          console.warn("Screen full - too many bunnies.");
+          currentY = maxY;
+        }
+
+        nextBunnyX = currentX;
+      }
+
+      bunnies.push({
+        x: -anim.frameWidth,
+        y: currentY,
+        speed: 3 + Math.random(),
+        stopX: nextBunnyX,
+        frame: 0,
+        frameCounter: 0,
+        arrived: false,
+        anim: anim,
+        scale: scale
+      });
+
+      currentX = (window.innerWidth)/2-(nextBunnyX + bunnyWidth + bunnySpacingX);
+    }
+
+    currentX += groupSpacingX;
+  }
+}
+
+
+
+
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
+  bunnies.forEach(bunny => {
+    const { img, frameWidth, frameHeight, totalFrames, gapBetweenFrames, sourceY } = bunny.anim;
+
+    ctx.save();
+    if (!bunny.arrived) {
+      bunny.x += bunny.speed;
+      if (bunny.x >= bunny.stopX) {
+        bunny.x = bunny.stopX;
+        bunny.arrived = true;
+      }
+    }
+
+    ctx.drawImage(
+      img,
+      bunny.frame * frameWidth + gapBetweenFrames, sourceY,
+      frameWidth, frameHeight,
+      bunny.x, bunny.y,
+      frameWidth * bunny.scale, frameHeight * bunny.scale
+    );
+
+    ctx.restore();
+
+    bunny.frameCounter++;
+    if (bunny.frameCounter >= frameSpeed) {
+      bunny.frame = (bunny.frame + 1) % totalFrames;
+      bunny.frameCounter = 0;
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+
+function runTimesTable(table, upTo) {
+  let step = 1;
+
+  function nextQuestion() {
+    if (step > upTo) {
+      info.innerText = "Great Job!";
+      options.innerHTML = '';
+      return;
+    }
+
+    const multiplicand = step;
+    const product = table * multiplicand;
+
+    info.innerText = `What is ${table} x ${multiplicand} ?`;
+    options.innerHTML = '';
+
+    const correct = product;
+    const wrong1 = correct + Math.floor(Math.random() * 5) + 1;
+    const wrong2 = correct - Math.floor(Math.random() * 3) - 1;
+    const choices = [correct, wrong1, wrong2].sort(() => Math.random() - 0.5);
+
+    choices.forEach(val => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerText = val;
+      btn.onclick = () => handleAnswer(val, correct, table, multiplicand);
+      options.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(selected, correct, groups, perGroup) {
+    if (selected === correct) {
+      info.innerText = `${groups} x ${perGroup} = ${correct} ✅`;
+      options.innerHTML = '';
+
+      spawnGroupedBunnies(perGroup, groups, Animations.run);
+
+      
+
+      setTimeout(() => {
+        // bunnies.length = 0;
+        step++;
+        changeAllBunnyAnimations(Animations.eat);
+        nextQuestion();
+      }, 4000);
+    } else {
+      info.innerText = "Try again!";
+    }
+  }
+
+  nextQuestion();
+}
+
+function changeAllBunnyAnimations(newAnim) {
+  if (!newAnim || !(newAnim.img instanceof HTMLImageElement) || !newAnim.img.complete) {
+    console.warn("Animation image not ready or invalid.");
+    return;
+  }
+  bunnies.forEach(bunny => {
+    bunny.anim = newAnim;
+    bunny.frame = 0;
+    bunny.frameCounter = 0;
+  });
+}
+</script>
+</body>
+</html>

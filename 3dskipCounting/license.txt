@@ -1,0 +1,11 @@
+Model Information:
+* title:	2015 Rocket Bunny S15 Nissan Silvia
+* source:	https://sketchfab.com/3d-models/2015-rocket-bunny-s15-nissan-silvia-df3f99c83f6e43bd83fb3079ec138626
+* author:	Ddiaz Design (https://sketchfab.com/ddiaz-design)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "2015 Rocket Bunny S15 Nissan Silvia" (https://sketchfab.com/3d-models/2015-rocket-bunny-s15-nissan-silvia-df3f99c83f6e43bd83fb3079ec138626) by Ddiaz Design (https://sketchfab.com/ddiaz-design) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

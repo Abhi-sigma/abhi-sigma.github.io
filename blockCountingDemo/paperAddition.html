@@ -1,0 +1,48 @@
+<!-- Paper-Style Addition Modal -->
+<div id="paper-addition-modal" class="paper-addition-modal" style="display: none;">
+  <div class="paper-modal-content">
+    <div class="paper-header">
+      <h3>📝 How to Solve?</h3>
+      <button class="close-paper-modal" onclick="closePaperAdditionModal()">&times;</button>
+     
+    </div>
+    <div><button class = "btn close-modal-btn" onclick="window.closePaperAdditionModal()">Return to Blocks</button></div>
+    
+    <div class="paper-addition-container">
+      <!-- Addition Table Container -->
+      <table class="addition-table" id="addition-table">
+        <!-- Carry Row -->
+        <tr class="carry-row" id="carry-row">
+          <!-- Carry cells will be dynamically added -->
+        </tr>
+        
+        <!-- First Number Row -->
+        <tr class="number-row first-number" id="first-number-row">
+          <!-- Number cells will be dynamically added -->
+        </tr>
+        
+        <!-- Second Number Row (with plus sign) -->
+        <tr class="number-row second-number" id="second-number-row">
+          <!-- Plus sign and number cells will be dynamically added -->
+        </tr>
+        
+        <!-- Horizontal Line Row -->
+        <tr class="line-row">
+          <td colspan="10" class="addition-line"></td>
+        </tr>
+        
+        <!-- Result Row -->
+        <tr class="number-row result-number" id="result-number-row">
+          <!-- Result cells will be dynamically added -->
+        </tr>
+      </table>
+    </div>
+    
+    <!-- Step Explanation -->
+    <div class="step-explanation" id="step-explanation">
+      <p>Click "Next Step" to see the addition process step by step!</p>
+    </div>
+    
+    <!-- Auto-synced with carry-over process - no manual navigation needed -->
+  </div>
+</div>

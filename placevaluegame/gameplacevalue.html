@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Spawn Targets Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #uiPanel {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffffcc;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-family: sans-serif;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        #captureUI {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: sans-serif;
+            font-size: 16px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            max-width: 180px;
+        }
+
+        .tray {
+            display: flex;
+            flex-direction: column-reverse;
+            /* This puts higher values at bottom visually */
+            align-items: center;
+            gap: 6px;
+        }
+
+
+        li {
+            list-style: none;
+            margin: 2px 0;
+            padding: 2px 5px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #levelUI {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+            padding: 10px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #levelTargets {
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .target-num {
+            padding: 5px 10px;
+            border: 2px solid white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .target-num.captured {
+            background-color: green;
+            border-color: green;
+            color: white;
+            position: relative;
+        }
+
+        .target-num.captured::after {
+            content: '✔';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #2e7d32;
+            border-radius: 50%;
+            font-size: 12px;
+            padding: 2px 5px;
+        }
+
+        #breakdownPanel {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            font-family: sans-serif;
+            display: none;
+            z-index: 20;
+        }
+
+        .breakdown-line {
+            margin: 10px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .breakdown-hundreds {
+            color: blue;
+        }
+
+        .breakdown-tens {
+            color: orange;
+        }
+
+        .breakdown-ones {
+            color: green;
+        }
+
+        .breakdown-thousands {
+            color: purple;
+        }
+
+        .block-ui {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            border: 1px solid #222;
+            width: 50px;
+            height: 40px;
+            font-family: sans-serif;
+        }
+
+        /* 1s block */
+        .block-1 {
+            background: #f44336;
+            /* red */
+            width: 40px;
+            height: 30px;
+            font-size: 14px;
+        }
+
+        /* 10s block */
+        .block-10 {
+            background: #2196f3;
+            /* blue */
+            width: 50px;
+            height: 35px;
+            font-size: 15px;
+        }
+
+        /* 100s block */
+        .block-100 {
+            background: #4caf50;
+            /* green */
+            width: 60px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        /* 1000s block */
+        .block-1000 {
+            background: #ff9800;
+            /* orange */
+            width: 70px;
+            height: 45px;
+            font-size: 17px;
+        }
+
+        /* 10000s block */
+        .block-10000 {
+            background: #9c27b0;
+            /* purple */
+            width: 80px;
+            height: 50px;
+            font-size: 18px;
+        }
+
+        /* 100000s block */
+        .block-100000 {
+            background: #795548;
+            /* brown */
+            width: 90px;
+            height: 55px;
+            font-size: 19px;
+        }
+
+        /* 1000000s block */
+        .block-1000000 {
+            background: #607d8b;
+            /* slate */
+            width: 100px;
+            height: 60px;
+            font-size: 20px;
+        }
+
+        .break-down {
+            font-size: 1.5em;
+
+        }
+
+        #breakdownPanel>button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .breakdown-number {
+            border: 2px black solid;
+            background: #c50731;
+            font-size: 1em;
+            padding: 5px;
+            color: white;
+        }
+
+        #captureUI .title {
+            font-size: 1.2em;
+        }
+
+        input.quiz-input {
+            position: absolute;
+            width: 140px;
+            padding: 10px 12px;
+            font-size: 20px;
+            font-family: 'Comic Sans MS', sans-serif;
+            color: #333;
+            background-color: #fffdf9;
+            border: 2px solid #cccccc;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+            outline: none;
+            z-index: 1000;
+        }
+
+        input.quiz-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px #a3f7bf;
+        }
+
+
+        @media (max-width: 500px) {
+            .block {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="level-indicator">
+        <span></span>
+    </div>
+    <div id="captureUI">
+        <div class="title">Captured Blocks</div>
+        <div id="captureTray" class="tray"></div>
+        <div class="title">Total: <span id="totalValue">0</span></div>
+    </div>
+    <div id="levelUI">
+        <div id="levelMessage">Capture <span id="currentTargetDisplay">---</span></div>
+        <div id="levelTargets"></div>
+    </div>
+
+    <div id="breakdownPanel">
+        <div><strong>Number Breakdown</strong></div>
+        <div id="breakdownContent"></div>
+        <button onclick="startBlockSpawning()" style="margin-top: 10px;">Start</button>
+    </div>
+    <div id="gameContainer"></div>
+
+
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            parent: 'gameContainer', // <- attach canvas here
+            physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+            scene: { preload, create, update },
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+
+        };
+
+
+        const game = new Phaser.Game(config);
+        this.playerSpeed = 200;
+        let currentTargetIndex = 0;
+        let currentLevel = 1;
+        let currentTarget = 0;
+        let targetParts = [];
+        let capturedParts = {};
+        let toCaptureParts = {};
+        let capturedBlocks = [];
+        let captureTray = [];
+        let targets = [];
+        let totalCaptured = 0;
+        // let levels = {
+        //     1: generateRandomNumbers(2, 1, 9),
+        //     2: generateRandomNumbers(2, 100, 999),
+        //     3: generateRandomNumbers(1, 1000, 9999),
+        //      4: generateRandomNumbers(1, 10000, 99999),
+        //      5: generateRandomNumbers(1, 100000, 999999),
+        //      6: generateRandomNumbers(1, 1000000, 1000000),
+        // };
+        let levels = {
+            1: [1, 15],
+            2: [100, 200],
+
+        };
+        const placeValues = [1, 100, 1000, 10000, 100000, 1000000];
+        this.lastInput = 'keyboard'; // or 'joystick'
+        let player = this.player;
+
+
+
+
+
+        function preload() {
+            // this.load.image('skyBg', 'https://cdn.pixabay.com/photo/2015/09/18/19/03/sky-95720_1280.jpg');
+            this.load.image('particle', 'assets/smoke.png');
+        }
+
+        function playCaptureBurst(scene, x, y, color = 0xffffff) {
+            const particles = scene.add.particles('particle');
+
+            const emitter = particles.createEmitter({
+                x: x,
+                y: y,
+                speed: { min: 100, max: 200 },
+                angle: { min: 0, max: 360 },
+                lifespan: 400,
+                quantity: 15,
+                scale: { start: 0.05, end: 0 },
+                alpha: { start: 1, end: 0 },
+                tint: color,
+                on: false,
+            });
+
+            emitter.explode(15, x, y);
+
+            // destroy the particle manager after effect
+            scene.time.delayedCall(500, () => {
+                particles.destroy();
+            });
+        }
+
+
+        class VirtualJoystick extends Phaser.Events.EventEmitter {
+
+            constructor(scene, x, y, radius = 60) {
+                super();
+                this.scene = scene;
+                this.base = scene.add.circle(x, y, radius, 0x888888, 0.4).setScrollFactor(0).setDepth(1000);
+                this.stick = scene.add.circle(x, y, radius / 2, 0xffffff, 0.8).setScrollFactor(0).setDepth(1001);
+                this.baseRadius = radius;
+                this.pointerId = null;
+                this.stickOffset = new Phaser.Math.Vector2(0, 0);
+
+                this.enableInput();
+            }
+
+            enableInput() {
+                this.scene.input.on('pointerdown', pointer => {
+                    if (this.pointerId === null && this.base.getBounds().contains(pointer.x, pointer.y)) {
+                        this.pointerId = pointer.id;
+                        this.updateStick(pointer);
+                    }
+                });
+
+                this.scene.input.on('pointermove', pointer => {
+                    if (pointer.id === this.pointerId) {
+                        this.updateStick(pointer);
+                    }
+                });
+
+                this.scene.input.on('pointerup', pointer => {
+                    if (pointer.id === this.pointerId) {
+                        this.pointerId = null;
+                        this.stickOffset.set(0, 0);
+                        this.stick.x = this.base.x;
+                        this.stick.y = this.base.y;
+                    }
+                });
+            }
+
+            updateStick(pointer) {
+                this.emit('move', this.stickOffset);
+                const dx = pointer.x - this.base.x;
+                const dy = pointer.y - this.base.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+                const limitedDist = Math.min(this.baseRadius, dist);
+
+                this.stick.x = this.base.x + Math.cos(angle) * limitedDist;
+                this.stick.y = this.base.y + Math.sin(angle) * limitedDist;
+
+                this.stickOffset.set(
+                    (this.stick.x - this.base.x) / this.baseRadius,
+                    (this.stick.y - this.base.y) / this.baseRadius
+                );
+            }
+
+            getDirection() {
+                return this.stickOffset.clone(); // Vector2 from -1 to 1
+            }
+
+            destroy() {
+                this.base.destroy();
+                this.stick.destroy();
+            }
+        }
+
+
+        function showNumberBreakdown(number) {
+            const breakdownPanel = document.getElementById('breakdownPanel');
+            breakdownPanel.firstElementChild.innerHTML = `<span class="break-down"><strong>Breakdown of <span class="breakdown-number">${number}<span></strong><span>`;
+            const content = document.getElementById('breakdownContent');
+            content.innerHTML = '';
+
+            const digits = number.toString().split('').map(Number);
+            const placeNames = ['millions', 'hundred-thousands', 'ten-thousands', 'thousands', 'hundreds', 'tens', 'ones'];
+            const classes = ['breakdown-thousands', 'breakdown-thousands', 'breakdown-thousands', 'breakdown-thousands', 'breakdown-hundreds', 'breakdown-tens', 'breakdown-ones'];
+
+            const totalDigits = digits.length;
+            digits.forEach((digit, i) => {
+                const placeValue = Math.pow(10, totalDigits - i - 1);
+                const value = digit * placeValue;
+                if (digit > 0) {
+                    const place = placeNames[placeNames.length - digits.length + i];
+                    const colorClass = classes[classes.length - digits.length + i];
+                    const div = document.createElement('div');
+                    div.className = `breakdown-line ${colorClass}`;
+                    div.innerText = `${digit} ${place} → ${value}`;
+                    content.appendChild(div);
+                }
+            });
+
+            breakdownPanel.style.display = 'block';
+            // Optional auto-advance after delay
+            // setTimeout(() => startBlockSpawning(), 4000);
+        }
+        function animateBlockLevelUp(block, scaleFactor = 1.1, duration = 300) {
+            const currentScale = block.scale || 1;
+
+            // Tween to scale up
+            block.scene.tweens.add({
+                targets: block,
+                scale: currentScale * scaleFactor,
+                ease: 'Back.Out',
+                duration: duration,
+            });
+        }
+
+
+        function generateRandomNumbers(count, min, max) {
+            const nums = [];
+            for (let i = 0; i < count; i++) {
+                const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+                if (nums.includes(rand)) {
+                    i--; // Ensure unique numbers
+                }
+                else if (rand >= min && rand <= max) {
+                    nums.push(rand);
+                }
+            }
+
+            return nums;
+        }
+
+        function startBlockSpawning() {
+            document.getElementById('breakdownPanel').style.display = 'none';
+            for (const [placeValue, count] of Object.entries(toCaptureParts)) {
+                spawnBlockParts(game.scene.scenes[0], count, parseInt(placeValue));
+                player.body.enable = true; // Enable player physics
+            }
+
+        }
+
+
+        function showLevelTargets(levelNumbers, currentTarget) {
+            console.log("showLevelTargets", levelNumbers, currentTarget, currentLevel);
+            const container = document.getElementById("levelTargets");
+            const display = document.getElementById("currentTargetDisplay");
+            display.textContent = currentTarget;
+            container.innerHTML = '';
+            levelNumbers.forEach(num => {
+                const span = document.createElement('span');
+                span.classList.add('target-num');
+                span.textContent = num;
+                span.dataset.value = num;
+                container.appendChild(span);
+            });
+        }
+        function markTargetCapturedUI(value) {
+            const targetEl = document.querySelector(`.target-num[data-value="${value}"]`);
+            if (targetEl) {
+                targetEl.classList.add("captured");
+            }
+
+        }
+        function showTextCentre(scene, texttoShow, onComplete) {
+
+            scene.time.delayedCall(50, () => {
+                const cx = scene.cameras.main.worldView.centerX;
+                const cy = scene.cameras.main.worldView.centerY;
+
+                const levelText = scene.add.text(cx, cy, texttoShow, {
+                    fontSize: '48px',
+                    color: '#ffffff',
+                    backgroundColor: '#000000',
+                    padding: { x: 20, y: 10 },
+                    align: 'center'
+                }).setOrigin(0.5).setDepth(1000);
+
+                scene.tweens.add({
+                    targets: levelText,
+                    alpha: 0,
+                    duration: 400,
+                    delay: 1200,
+                    onComplete: () => {
+                        levelText.destroy();
+                        if (onComplete) onComplete();
+                    }
+                });
+            });
+        }
+
+
+
+        function create() {
+            const worldWidth = 3000;
+            const worldHeight = 2000;
+            const groundHeight = 1400;
+            this.playerSpeed = 200;
+
+            this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+            this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
+
+            // Draw grass
+            const grass = this.add.graphics();
+            grass.fillStyle(0x228B22, 1);
+            grass.fillRect(0, worldHeight - groundHeight, worldWidth, groundHeight);
+
+            // Create player sprite
+            const g = this.add.graphics();
+            g.fillStyle(0x0000ff, 1);
+            g.fillRect(0, 0, 40, 40);
+            g.generateTexture('playerBlock', 40, 40);
+
+            player = this.physics.add.sprite(worldWidth / 2, worldHeight / 2, 'playerBlock').setCollideWorldBounds(true);
+            this.cameras.main.startFollow(player);
+
+            cursors = this.input.keyboard.createCursorKeys();
+            joystick = new VirtualJoystick(this, 100, this.scale.height - 100);
+
+            obstacles = this.physics.add.staticGroup();
+            targets = this.physics.add.group();  // clear + ensure physics group
+
+            // Place rocks
+            for (let i = 0; i < 30; i++) {
+                const x = Phaser.Math.Between(100, worldWidth - 100);
+                const y = Phaser.Math.Between(100, worldHeight - 100);
+                const rock = this.add.rectangle(x, y, 60, 60, 0x888888);
+                this.physics.add.existing(rock, true);
+                obstacles.add(rock);
+            }
+
+            this.physics.add.collider(player, obstacles);
+            showLevelTargets(levels[currentLevel], levels[currentLevel][currentTargetIndex]);
+            showTextCentre(this, `Level ${currentLevel}`, () => {
+                player.body.enable = false; // Disable physics until targets are generated
+                generateTargetBlocks(levels[currentLevel][currentTargetIndex], this);
+
+            });
+
+
+
+            // 👇 Setup minimap
+            this.minimap = this.cameras.add(10, 10, 200, 200)
+                .setZoom(0.07)
+                .setName('mini')
+                .setBackgroundColor(0x002244);
+
+            this.minimap.startFollow(player);
+            this.minimap.ignore(obstacles);
+
+            // ✅ Overlap for capture
+            this.physics.add.overlap(player, targets, (player, block) => {
+                captureBlock(this, block);
+            }, null, this);
+
+            // 👇 Auto re-activate blocks
+            this.time.addEvent({
+                delay: 3000,
+                loop: true,
+                callback: () => {
+                    targets.getChildren().forEach(t => {
+                        if (t.body && t.body.velocity.length() < 10) {
+                            const angle = Phaser.Math.FloatBetween(0, 2 * Math.PI);
+                            t.body.setVelocity(Math.cos(angle) * 100, Math.sin(angle) * 100);
+                        }
+                    });
+                }
+            });
+            this.joystick = new VirtualJoystick(this, 100, this.scale.height - 100);
+
+        }
+
+
+
+        function captureBlock(scene, block) {
+            if (!block.body) return;
+
+            if (block.body) {
+                block.body.enable = false;
+                block.body.stop();
+            }
+
+
+            const value = block.getData('value');
+            if (value) {
+                capturedBlocks.push(value);
+                totalCaptured += value;
+                capturedParts[value] = (capturedParts[value] || 0) + 1;
+
+                const color = value === 100 ? 0xff4444 : value === 10 ? 0x44ccff : 0x99ff99;
+                playCaptureBurst(scene, player.x, player.y, color);
+
+                checkTargetComplete(scene)
+                updateCaptureUI();
+            }
+
+            targets.remove(block, true, false); // ✅ Don't destroy immediately
+            // ✅ Disable physics and hide
+
+            const trayX = scene.cameras.main.scrollX + 60 + (capturedBlocks.length - 1) * 45;
+            const trayY = scene.cameras.main.scrollY + 60;
+
+            block.setDepth(10);
+            block.setVisible(false);
+            block.setActive(true);
+            if (block.body) {
+                block.body.enable = false;
+            }
+            scene.tweens.add({
+                targets: block,
+                x: trayX,
+                y: trayY,
+                alpha: 1,
+                duration: 500,
+                onStart: () => {
+                    block.setVisible(true);
+                    block.setActive(true);
+                },
+                onComplete: () => {
+                    captureTray.push(block);
+                }
+            });
+
+            // Optional sound/animation can be added here
+        }
+
+        function updateCaptureUI() {
+            const tray = document.getElementById('captureTray');
+            const total = document.getElementById('totalValue');
+
+            tray.innerHTML = ''; // Clear tray
+
+            // Sort captured blocks descending: highest value first
+            const sortedBlocks = [...capturedBlocks].sort((a, b) => b - a);
+
+            sortedBlocks.forEach(value => {
+                const div = document.createElement('div');
+                div.classList.add('block-ui', `block-${value}`);
+                div.textContent = value;
+                tray.appendChild(div);
+            });
+
+            total.textContent = totalCaptured;
+        }
+
+        function showNextButton(scene) {
+            const cx = scene.cameras.main.worldView.centerX;
+            const cy = scene.cameras.main.worldView.centerY + 100;
+
+            const button = scene.add.text(cx, cy, "Next", {
+                fontSize: "32px",
+                backgroundColor: "#008000",
+                color: "#ffffff",
+                padding: { x: 20, y: 10 }
+            }).setOrigin(0.5).setDepth(1000).setInteractive();
+
+            button.on('pointerdown', () => {
+                button.destroy();
+
+                const next = levels[currentLevel]?.[currentTargetIndex];
+
+                toCaptureParts = {};
+                capturedParts = {};
+                captureTray.forEach(block => block.destroy());
+                captureTray = [];
+                capturedBlocks = [];
+                totalCaptured = 0;
+
+                if (next) {
+                    showTextCentre(scene, `Level ${currentLevel}`, () => {
+                        scene.time.delayedCall(300, () => {
+                            generateTargetBlocks(next, scene);
+                        });
+                    });
+                } else {
+                    // Move to next level
+                    currentLevel++;
+                    currentTargetIndex = 0;
+                    animateBlockLevelUp(player, 1.5, 500);
+
+                    if (levels[currentLevel]) {
+                        const firstTarget = levels[currentLevel][0];
+                        showLevelTargets(levels[currentLevel], firstTarget);
+                        showTextCentre(scene, `Level ${currentLevel}`, () => {
+                            scene.time.delayedCall(300, () => {
+                                generateTargetBlocks(firstTarget, scene);
+                                // 
+                            });
+                        });
+                    } else {
+                        showTextCentre(scene, `🎉 Congrats! You're a place value master! 🎉`);
+                    }
+                }
+            });
+        }
+
+        function showPlaceValueQuiz(scene, number) {
+            player.body.enable = false; // Disable player physics during quiz
+            const cam = scene.cameras.main;
+            const canvasRect = scene.game.canvas.getBoundingClientRect();
+
+            // Choose a place value question
+            const digits = number.toString().split('').map(Number);
+            const numDigits = digits.length;
+
+
+            // Build list of valid (non-zero) place values
+            let validParts = [];
+            for (let i = 0; i < numDigits; i++) {
+                const digit = digits[i];
+                if (digit > 0) {
+                    const placeValue = Math.pow(10, numDigits - i - 1);
+                    validParts.push({ digit, placeValue });
+                }
+            }
+
+            if (validParts.length === 0) {
+                console.warn("No non-zero digits to quiz on.");
+                return;
+            }
+
+            // Pick one randomly
+            const { digit, placeValue } = Phaser.Utils.Array.GetRandom(validParts);
+
+
+            const cx = cam.worldView.centerX;
+            const cy = cam.worldView.centerY;
+
+            // Add question inside Phaser canvas
+            const questionText = scene.add.text(cx, cy, `How many ${placeValue}s in ${number}?`, {
+                fontSize: '28px',
+                color: '#000000',
+                backgroundColor: '#ffffaa',
+                padding: { x: 16, y: 10 }
+            }).setOrigin(0.5).setDepth(1000);
+
+            // ✨ Convert world coords to screen coords
+            const screenX = canvasRect.left + (cx - cam.scrollX) * cam.zoom;
+            const screenY = canvasRect.top + (cy - cam.scrollY) * cam.zoom + 50; // 50px below the text
+
+            // Add DOM input
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'quiz-input';  // ← Apply the style
+            input.placeholder = 'Your answer';
+            input.style.position = 'absolute';
+            input.style.top = `${screenY}px`;
+            input.style.left = `${screenX - 60}px`; // shift to center
+            input.style.width = '120px';
+            input.style.fontSize = '20px';
+            input.style.zIndex = '1000';
+
+            document.body.appendChild(input);
+            input.focus();
+
+            // Handle answer
+            input.addEventListener('keydown', function handler(e) {
+                if (e.key === 'Enter') {
+                    const answer = parseInt(input.value);
+                    if (answer === digit) {
+                        input.removeEventListener('keydown', handler);
+                        document.body.removeChild(input);
+                        questionText.destroy();
+                        showNextButton(scene);
+                    } else {
+                        input.value = '';
+                        input.style.background = 'red';
+                        setTimeout(() => (input.style.background = ''), 300);
+                    }
+                }
+            });
+        }
+
+
+
+
+        function checkTargetComplete(scene) {
+            let isComplete = false;
+
+            const checkTargets = (capturedParts, toCaptureParts) => {
+                const keys1 = Object.keys(capturedParts);
+                const keys2 = Object.keys(toCaptureParts);
+                if (keys1.length !== keys2.length) return false;
+                for (let key of keys1) {
+                    if (capturedParts[key] !== toCaptureParts[key]) return false;
+                }
+                return true;
+            };
+
+            if (checkTargets(capturedParts, toCaptureParts)) {
+                markTargetCapturedUI(currentTarget);
+                animateBlockLevelUp(player, 1.25, 300);
+                isComplete = true;
+                currentTargetIndex++;
+            }
+
+            if (isComplete) {
+                showTextCentre(scene, `Target Captured!`, () => {
+                    showPlaceValueQuiz(scene, currentTarget); // ➕ ask quiz now
+                });
+
+
+
+
+            }
+        }
+
+
+
+        function update() {
+            let atEdge = false;
+            player.setVelocity(0);
+            //check if keyboard is pressed
+            this.input.keyboard.on('keydown', () => {
+                this.lastInput = 'keyboard';
+
+            });
+            this.joystick.on('move', pointer => {
+
+                this.lastInput = 'joystick';
+                // If joystick is active, update the stick position
+                if (this.pointerId === null && this.base.getBounds().contains(pointer.x, pointer.y)) {
+                    this.pointerId = pointer.id;
+                    this.updateStick(pointer); // ← this moves the stick!
+                }
+            });
+
+
+            //check if keyboard is pressed
+            this.input.keyboard.on('keydown', () => {
+                this.lastInput = 'keyboard';
+            });
+
+
+            // Movement logic
+
+            let vx = 0;
+            let vy = 0;
+
+            if (this.lastInput === 'joystick' && this.joystick) {
+                const dir = this.joystick.getDirection();
+                vx = dir.x * playerSpeed;
+                vy = dir.y * playerSpeed;
+            } else {
+                // LEFT / RIGHT
+                if (cursors.left.isDown) vx = -playerSpeed;
+                else if (cursors.right.isDown) vx = playerSpeed;
+
+                // UP / DOWN
+                if (cursors.up.isDown) vy = -playerSpeed;
+                else if (cursors.down.isDown) vy = playerSpeed;
+            }
+
+            player.setVelocity(vx, vy);
+
+
+            targets.children.iterate(block => {
+
+
+
+                if (!block.body) return;
+
+                const dx = block.x - player.x;
+                const dy = block.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 150) {
+                    const vx = (dx / dist) * 100;
+                    const vy = (dy / dist) * 100;
+                    block.body.setVelocity(vx, vy);
+                }
+
+                // LEFT edge
+                if (block.x <= 0) {
+                    atEdge = true;
+                    block.x = 1;
+                    block.body.setVelocityX(Math.abs(block.body.velocity.x));
+                }
+
+                // RIGHT edge
+                if (block.x >= config.width - 40) {
+                    atEdge = true;
+                    block.x = config.width - 41;
+                    block.body.setVelocityX(-Math.abs(block.body.velocity.x));
+                }
+
+                // TOP edge
+                if (block.y <= 0) {
+                    atEdge = true;
+                    block.y = 1;
+                    block.body.setVelocityY(Math.abs(block.body.velocity.y));
+                }
+
+                // BOTTOM edge
+                if (block.y >= config.height - 40) {
+                    atEdge = true;
+                    block.y = config.height - 41;
+                    block.body.setVelocityY(-Math.abs(block.body.velocity.y));
+                }
+                const distance = Phaser.Math.Distance.Between(player.x, player.y, block.x, block.y);
+
+                if (distance < 100 && !atEdge) { // chase range
+                    // Random scatter direction (not directly opposite, adds variation)
+                    const angle = Phaser.Math.Angle.Between(player.x, player.y, block.x, block.y) + Phaser.Math.FloatBetween(-0.5, 0.5);
+                    const speed = Phaser.Math.Between(150, 250);
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    block.body.setVelocity(vx, vy);
+                }
+
+
+            });
+        }
+        function generateTargetBlocks(number, scene) {
+            console.log("generating target blocks for number:", number);
+            currentTarget = number;
+
+            if (levels[currentLevel][currentTargetIndex - 1] !== undefined) {
+                markTargetCapturedUI(levels[currentLevel][currentTargetIndex - 1]);
+            }
+
+            targetParts = [];
+
+            // Break number into place values (e.g., 1234 => [1000, 200, 30, 4])
+            const digits = number.toString().split('').map(Number);
+            const numDigits = digits.length;
+
+
+            let valueParts = [];
+            for (let i = 0; i < numDigits; i++) {
+                const placeValue = Math.pow(10, numDigits - i - 1);
+                const digit = digits[i];
+
+                if (digit > 0) {
+                    toCaptureParts[placeValue] = digit;
+                    for (let j = 0; j < digit; j++) {
+                        valueParts.push(placeValue);
+                    }
+                }
+            }
+            showNumberBreakdown(currentTarget); // builds Start button / DOM UI
+
+        }
+        function getPlaceValue(value) {
+            if (value === 0) return 1;
+            return Math.pow(10, Math.floor(Math.log10(value)));
+        }
+
+
+        function spawnBlockParts(scene, count, value) {
+            const cam = scene.cameras.main;
+            const padding = 40;
+            const spacing = 60;
+            let blocksSpawned = 0;
+
+            const attemptSpawn = () => {
+                if (blocksSpawned >= count) return;
+
+                let attempts = 0;
+                let placed = false;
+
+                while (!placed && attempts < 30) {
+                    const x = Phaser.Math.Clamp(
+                        Phaser.Math.Between(cam.scrollX + padding, cam.scrollX + cam.width - padding),
+                        padding, scene.physics.world.bounds.width - padding
+                    );
+                    const y = Phaser.Math.Clamp(
+                        Phaser.Math.Between(cam.scrollY + padding, cam.scrollY + cam.height - padding),
+                        padding, scene.physics.world.bounds.height - padding
+                    );
+
+                    let tooClose = targets.getChildren().some(p =>
+                        Phaser.Math.Distance.Between(p.x, p.y, x, y) < spacing
+                    );
+
+                    if (!tooClose) {
+                        const color = value === 10 ? 0xffaa00 : 0xaaff00;
+                        const block = scene.add.rectangle(0, 0, 40, 40, color).setStrokeStyle(1, 0x000000);
+                        const label = scene.add.text(0, 0, value.toString(), { fontSize: '18px', color: '#000' }).setOrigin(0.5);
+                        const container = scene.add.container(x, y, [block, label]);
+                        container.setData('value', value);
+
+                        scene.physics.add.existing(container); // ✅ Add physics
+                        container.body.setCollideWorldBounds(true);
+                        container.body.setBounce(1, 1);
+                        container.body.setVelocity(
+                            Phaser.Math.Between(-100, 100),
+                            Phaser.Math.Between(-100, 100)
+                        );
+
+                        targets.add(container); // ✅ Add to targets group
+                        targetParts.push(container);
+                        placed = true;
+                        blocksSpawned++;
+                    }
+
+                    attempts++;
+                }
+
+                if (!placed) {
+                    console.warn(`Could not place block of value ${value} after 30 attempts`);
+                }
+
+                if (blocksSpawned < count) {
+                    scene.time.delayedCall(200, attemptSpawn, null, scene);
+                }
+            };
+            attemptSpawn();
+            showTextCentre(scene, `Level ${currentLevel}`, () => {
+
+            });
+        }
+
+
+    </script>
+
+</body>
+
+</html>

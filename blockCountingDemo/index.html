@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="paperAddition.css">
+  <title>Interactive Block Counting - Carry Over Addition</title>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="container">
+        <h1>🧮 Interactive Block Counting - Carry Over Addition</h1>
+        <p>Learn addition with visual blocks and carry-over!</p>
+        
+        <div class="demo-buttons">
+            
+            <button id="no-carry-btn" class="demo-button">No Carry-Over</button>
+            <button id="ones-carry-btn" class="demo-button">Ones Carry Only</button>
+            <button id="tens-carry-btn" class="demo-button">Tens Carry Only</button>
+            <button id="both-carry-btn" class="demo-button">Both Carry</button>
+            <button id="random-btn" class="demo-button start-button">🎲 Random Problem</button>
+            
+        </div>
+      </div>
+    </header>
+    
+    <div id="question-title"></div>
+    <div id="original-numbers" class="original-numbers" style="display: none;">
+      <h4>Original Problem</h4>
+      <div class="original-problem" id="original-problem-text"></div>
+    </div>
+    
+    <!-- Vertically Sliding Instructions Block -->
+    <div id="instructions-container" class="instructions-container">
+      <div class="instructions-handle" id="instructions-handle">
+        <span class="handle-icon">📋</span>
+        <span class="handle-text">Instructions</span>
+        <span class="handle-arrow">▼</span>
+      </div>
+      <div id="instructions-content" class="instructions-content">
+        <div id="question-area"></div>
+      </div>
+    </div>
+    <!-- Floating Information Panel -->
+    <div id="floating-info-panel" class="floating-info-panel" style="display: none;">
+      <div class="info-panel-content">
+        <span class="info-icon">🎯</span>
+        <span class="info-text">Working on: <span id="current-place-label">Ones</span></span>
+      </div>
+    </div>
+
+    <!-- Numpad Active Overlay -->
+    <div id="numpad-overlay" class="numpad-overlay" style="display: none;">
+      <div class="overlay-content">
+        <!-- <div class="overlay-icon">🔢</div> -->
+        <div class="overlay-text">Numpad Input Active</div>
+        <!-- <div class="overlay-subtext">Blocks are temporarily disabled</div> -->
+        <button onclick="window.toggleInstructions()" id="open-numpad-btn" class="open-numpad-btn">
+          <span class="btn-icon">🔢</span>
+          <span class="btn-text">Open Numpad</span>
+        </button>
+      </div>
+    </div>
+
+   
+
+    <!-- Paper-Style Addition Modal will be loaded dynamically -->
+    <div id="visual-area"></div>
+    
+    <div id="sum-area">
+      <h3>📊 Sum Blocks</h3>
+      <div id="sum-blocks"></div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+  <script type="module" src="carryoverLogic.js"></script>
+  <script type="module" src="paperAddition.js"></script>
+</body>
+</html>
